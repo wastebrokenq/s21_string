@@ -102,6 +102,11 @@ START_TEST(test_s21_memchr_with_null_byte) {
 }
 END_TEST
 
+START_TEST(test_s21_memchr_null_pointer) {
+    ck_assert_ptr_eq(s21_memchr(S21_NULL, 'a', 5), S21_NULL);
+}
+END_TEST
+
 
 // -------------------------ТЕСТЫ memcmp-----------------------------
 
@@ -168,6 +173,50 @@ START_TEST(test_s21_memcmp_zero_length) {
 }
 END_TEST
 
+START_TEST(test_s21_memcmp_null_pointers) {
+    char str[] = "test";
+    ck_assert_int_eq(s21_memcmp(S21_NULL, S21_NULL, 5), 0);
+    ck_assert_int_eq(s21_memcmp(S21_NULL, str, 5), -1);
+    ck_assert_int_eq(s21_memcmp(str, S21_NULL, 5), 1);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ memcpy-----------------------------
+
+// базовый случай
+START_TEST(test_s21_memcpy_basic) {
+    char src[] = "For example";
+    char dest_expected[50] = {0};
+    char dest[50] = {0};
+    s21_size_t n = strlen(src) + 1;
+    
+    memcpy(dest_expected, src, n);
+    s21_memcpy(dest, src, n);
+
+    ck_assert_mem_eq(dest, dest_expected, n); // проверяем одинакого скопировалось или нет. в данном случае сравнение указателей не нужно
+}
+
+// граничные случаи
+
+START_TEST(test_s21_memcpy_null_pointers) {
+    char src[] = "test";
+    ck_assert_ptr_eq(s21_memcpy(S21_NULL, src, 5), S21_NULL);
+    ck_assert_ptr_eq(s21_memcpy(src, S21_NULL, 5), S21_NULL);
+    ck_assert_ptr_eq(s21_memcpy(S21_NULL, S21_NULL, 5), S21_NULL);
+}
+END_TEST
+
+START_TEST(test_s21_memcpy_zero_length) {
+    char src[] = "unchanged";
+    char dest[] = "original";
+    char expected[] = "original";
+
+    s21_memcpy(dest, src, 0);
+    ck_assert_str_eq(dest, expected); // строка должна не меняться
+}
+END_TEST
+
 
 // сборка тестов в test-suite
 Suite *s21_string_suite(void) {
@@ -183,6 +232,7 @@ Suite *s21_string_suite(void) {
     tcase_add_test(tc_memchr, test_s21_memchr_last_byte);
     tcase_add_test(tc_memchr, test_s21_memchr_zero_length);
     tcase_add_test(tc_memchr, test_s21_memchr_with_null_byte);
+    tcase_add_test(tc_memchr, test_s21_memchr_null_pointer);
 
     // группа тестов memcmp
     TCase *tc_memcmp = tcase_create("memcmp");
@@ -191,10 +241,19 @@ Suite *s21_string_suite(void) {
     tcase_add_test(tc_memcmp, test_s21_memcmp_diff_middle_byte);
     tcase_add_test(tc_memcmp, test_s21_memcmp_diff_last_byte);
     tcase_add_test(tc_memcmp, test_s21_memcmp_zero_length);
+    tcase_add_test(tc_memcmp, test_s21_memcmp_null_pointers);
+
+    // группа тестов memcpy
+    TCase *tc_memcpy = tcase_create("memcpy");
+    tcase_add_test(tc_memcpy, test_s21_memcpy_basic);
+    tcase_add_test(tc_memcpy, test_s21_memcpy_null_pointers);
+    tcase_add_test(tc_memcpy, test_s21_memcpy_zero_length);
+
 
     // добавление групп тестов (TCase) в набор групп тестов (Suite)
     suite_add_tcase(s, tc_memchr);
     suite_add_tcase(s, tc_memcmp);
+    suite_add_tcase(s, tc_memcpy);
 
     return s;
 }
