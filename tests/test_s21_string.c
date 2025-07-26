@@ -218,6 +218,54 @@ START_TEST(test_s21_memcpy_zero_length) {
 END_TEST
 
 
+// -------------------------ТЕСТЫ memset-----------------------------
+
+// базовый случай
+START_TEST(test_s21_memset_basic) {
+    char str[] = "Hello, world!";
+    char c = 'x';
+    s21_size_t n = 5;
+
+    void *expected = memset(str, c, n);
+    void *actual = s21_memset(str, c, n);
+
+    ck_assert_ptr_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strncat-----------------------------
+
+// базовый случай
+START_TEST(test_s21_strncat_basic) {
+    char src[] = "Hello, world!";
+    char dest[100] = "Alex";
+    s21_size_t n = 13;
+
+    strncat(dest, src, n);
+
+    char dest2[100] = "Alex";
+    s21_strncat(dest2, src, n);
+
+    ck_assert_str_eq(dest2, dest);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strlen------------------------------
+
+// базовый случай
+START_TEST(test_s21_strlen_basic) {
+    char str[] = "Hello, world!";
+
+    s21_size_t expected = strlen(str);
+    s21_size_t actual = s21_strlen(str);
+
+    ck_assert_int_eq(actual, expected);
+}
+END_TEST
+
+
 // сборка тестов в test-suite
 Suite *s21_string_suite(void) {
     Suite *s = suite_create("s21_string");
@@ -249,11 +297,26 @@ Suite *s21_string_suite(void) {
     tcase_add_test(tc_memcpy, test_s21_memcpy_null_pointers);
     tcase_add_test(tc_memcpy, test_s21_memcpy_zero_length);
 
+    // группа тестов для memset
+    TCase *tc_memset = tcase_create("memset");
+    tcase_add_test(tc_memset, test_s21_memset_basic);
+
+    // группа тестов для strncat
+    TCase *tc_strncat = tcase_create("strncat");
+    tcase_add_test(tc_strncat, test_s21_strncat_basic);
+
+    // группа тестов для strlen
+    TCase *tc_strlen = tcase_create("strlen");
+    tcase_add_test(tc_strlen, test_s21_strlen_basic);
+
 
     // добавление групп тестов (TCase) в набор групп тестов (Suite)
     suite_add_tcase(s, tc_memchr);
     suite_add_tcase(s, tc_memcmp);
     suite_add_tcase(s, tc_memcpy);
+    suite_add_tcase(s, tc_memset);
+    suite_add_tcase(s, tc_strncat);
+    suite_add_tcase(s, tc_strlen);
 
     return s;
 }

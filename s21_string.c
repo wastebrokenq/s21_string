@@ -37,3 +37,36 @@ void *s21_memcpy(void *dest, const void *src, s21_size_t n) {
     }
     return dest;
 }
+
+// реализация функции s21_memset
+void *s21_memset(void *str, int c, s21_size_t n) {
+    if (str == S21_NULL) return S21_NULL;
+    unsigned char *p = (unsigned char *)str;
+    for (s21_size_t i = 0; i < n; i++) {
+        p[i] = (unsigned char)c;
+    }
+    return str;
+}
+
+// реализация функции s21_strncat
+char *s21_strncat(char *dest, const char *src, s21_size_t n) {
+    if (dest == S21_NULL || src == S21_NULL) return S21_NULL;
+    s21_size_t dest_last_index = s21_strlen(dest);
+    s21_size_t copied = 0;
+    for (s21_size_t i = 0; i < n && src[i] != '\0'; i++) {
+        dest[dest_last_index + i] = src[i];
+        copied++;
+    }
+    dest[dest_last_index + copied] = '\0';
+    return dest;
+}
+
+// реализация функции s21_strlen
+s21_size_t s21_strlen(const char *str) {
+    if (str == S21_NULL) return 0;
+    s21_size_t n = 0;
+    while (str[n] != '\0') {
+        n++;
+    }
+    return n;
+}
