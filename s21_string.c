@@ -61,6 +61,60 @@ char *s21_strncat(char *dest, const char *src, s21_size_t n) {
     return dest;
 }
 
+// реализация функции s21_strchr
+char *s21_strchr(const char *str, int c) {
+    if (str == S21_NULL) return S21_NULL;
+    s21_size_t length = s21_strlen(str);
+    for (s21_size_t i = 0; i <= length; i++) {
+        if (str[i] == (char)c) return (char *)(str + i);
+    }
+    return S21_NULL;
+}
+
+// реализация функции s21_strncmp
+int s21_strncmp(const char *str1, const char *str2, s21_size_t n) {
+    if (str1 == S21_NULL || str2 == S21_NULL) return 0;
+    unsigned char *p1 = (unsigned char *)str1;
+    unsigned char *p2 = (unsigned char *)str2;
+    for (s21_size_t i = 0; (i < n) && (p1[i] != '\0' || p2[i] != '\0'); i++) {
+        if (p1[i] != p2[i]) {
+            return p1[i] - p2[i];
+        }
+    }
+    return 0;
+}
+
+// реализация функции s21_strncpy
+char *s21_strncpy(char *dest, const char *src, s21_size_t n) {
+    if (dest == S21_NULL || src == S21_NULL) return S21_NULL;
+    s21_size_t i = 0;
+    for (; i < n && src[i] != '\0'; i++) {
+        dest[i] = src[i];
+    }
+
+    for (; i < n; i++) {
+        dest[i] = '\0';
+    }
+    return dest;
+}
+
+// реализация функции s21_strcspn
+s21_size_t s21_strcspn(const char *str, const char *reject) {
+    if (str == S21_NULL || reject == S21_NULL) return 0;
+    s21_size_t i = 0;
+    while (str[i] != '\0') {
+        s21_size_t j = 0;
+        while (reject[j] != '\0') {
+            if (str[i] == reject[j]) {
+                return i;
+            }
+            j++;
+        }
+        i++;
+    }
+    return i;
+}
+
 // реализация функции s21_strlen
 s21_size_t s21_strlen(const char *str) {
     if (str == S21_NULL) return 0;

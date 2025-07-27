@@ -252,6 +252,90 @@ START_TEST(test_s21_strncat_basic) {
 END_TEST
 
 
+// -------------------------ТЕСТЫ strchr------------------------------
+
+// базовый случай
+START_TEST(test_s21_strchr_basic) {
+    char str[] = "Hello, world!";
+    int c = 0;
+
+    char *expected = strchr(str, c);
+    char *actual = s21_strchr(str, c);
+
+    ck_assert_ptr_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strncmp------------------------------
+
+// базовый случай
+START_TEST(test_s21_strncmp_basic) {
+    char str1[] = "Hello";
+    char str2[] = "Hello";
+    s21_size_t n = 5;
+
+    int expected = strncmp(str1, str2, n);
+    int actual = s21_strncmp(str1, str2, n);
+
+    ck_assert_int_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strncpy------------------------------
+
+// базовый случай
+START_TEST(test_s21_strncpy_basic) {
+    char src[] = "Hello";
+
+    char dest_expected[10] = "";
+    char dest_actual[10] = "";
+
+    s21_size_t n = 5;
+
+    char *expected = strncpy(dest_expected, src, n);
+    char *actual = s21_strncpy(dest_actual, src, n);
+
+    ck_assert_mem_eq(actual, expected, n);
+    ck_assert_str_eq(actual, expected);
+}
+END_TEST
+
+// граничные случаи
+
+START_TEST(test_s21_strncpy_zero_padding) {
+    char src[] = "Hi";
+
+    char dest_expected[5] = {'X', 'X', 'X', 'X', 'X'};
+    char dest_actual[5] = {'X', 'X', 'X', 'X', 'X'};
+
+    s21_size_t n = 5;
+
+    char *expected = strncpy(dest_expected, src, n);
+    char *actual = s21_strncpy(dest_actual, src, n);
+
+    ck_assert_mem_eq(actual, expected, n);
+    ck_assert_str_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strcspn------------------------------
+
+// базовый случай
+START_TEST(test_s21_strcspn_basic) {
+    char str[] = "Hello, world!";
+    char reject[] = "Hello, world!";
+
+    s21_size_t expected = strcspn(str, reject);
+    s21_size_t actual = s21_strcspn(str, reject);
+
+    ck_assert_int_eq(actual, expected);
+}
+END_TEST
+
+
 // -------------------------ТЕСТЫ strlen------------------------------
 
 // базовый случай
@@ -305,6 +389,23 @@ Suite *s21_string_suite(void) {
     TCase *tc_strncat = tcase_create("strncat");
     tcase_add_test(tc_strncat, test_s21_strncat_basic);
 
+    // группа тестов для strchr
+    TCase *tc_strchr = tcase_create("strchr");
+    tcase_add_test(tc_strchr, test_s21_strchr_basic);
+
+    // группа тестов для strncmp
+    TCase *tc_strncmp = tcase_create("strncmp");
+    tcase_add_test(tc_strncmp, test_s21_strncmp_basic);
+
+    // группа тестов для strncpy
+    TCase *tc_strncpy = tcase_create("strncpy");
+    tcase_add_test(tc_strncpy, test_s21_strncpy_basic);
+    tcase_add_test(tc_strncpy, test_s21_strncpy_zero_padding);
+
+    // группа тестов для strcspn
+    TCase *tc_strcspn = tcase_create("strcspn");
+    tcase_add_test(tc_strcspn, test_s21_strcspn_basic);
+
     // группа тестов для strlen
     TCase *tc_strlen = tcase_create("strlen");
     tcase_add_test(tc_strlen, test_s21_strlen_basic);
@@ -316,6 +417,10 @@ Suite *s21_string_suite(void) {
     suite_add_tcase(s, tc_memcpy);
     suite_add_tcase(s, tc_memset);
     suite_add_tcase(s, tc_strncat);
+    suite_add_tcase(s, tc_strchr);
+    suite_add_tcase(s, tc_strncmp);
+    suite_add_tcase(s, tc_strncpy);
+    suite_add_tcase(s, tc_strcspn);
     suite_add_tcase(s, tc_strlen);
 
     return s;
