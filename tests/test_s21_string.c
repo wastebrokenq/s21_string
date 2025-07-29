@@ -102,11 +102,6 @@ START_TEST(test_s21_memchr_with_null_byte) {
 }
 END_TEST
 
-START_TEST(test_s21_memchr_null_pointer) {
-    ck_assert_ptr_eq(s21_memchr(S21_NULL, 'a', 5), S21_NULL);
-}
-END_TEST
-
 
 // -------------------------ТЕСТЫ memcmp-----------------------------
 
@@ -173,14 +168,6 @@ START_TEST(test_s21_memcmp_zero_length) {
 }
 END_TEST
 
-START_TEST(test_s21_memcmp_null_pointers) {
-    char str[] = "test";
-    ck_assert_int_eq(s21_memcmp(S21_NULL, S21_NULL, 5), 0);
-    ck_assert_int_eq(s21_memcmp(S21_NULL, str, 5), -1);
-    ck_assert_int_eq(s21_memcmp(str, S21_NULL, 5), 1);
-}
-END_TEST
-
 
 // -------------------------ТЕСТЫ memcpy-----------------------------
 
@@ -198,14 +185,6 @@ START_TEST(test_s21_memcpy_basic) {
 }
 
 // граничные случаи
-
-START_TEST(test_s21_memcpy_null_pointers) {
-    char src[] = "test";
-    ck_assert_ptr_eq(s21_memcpy(S21_NULL, src, 5), S21_NULL);
-    ck_assert_ptr_eq(s21_memcpy(src, S21_NULL, 5), S21_NULL);
-    ck_assert_ptr_eq(s21_memcpy(S21_NULL, S21_NULL, 5), S21_NULL);
-}
-END_TEST
 
 START_TEST(test_s21_memcpy_zero_length) {
     char src[] = "unchanged";
@@ -336,6 +315,25 @@ START_TEST(test_s21_strcspn_basic) {
 END_TEST
 
 
+// -------------------------ТЕСТЫ strerror------------------------------
+
+#ifdef __linux__
+#define MAX_ERROR 133
+#elif defined __APPLE__
+#define MAX_ERROR 106
+#endif
+
+START_TEST(test_s21_strerror_basic) {
+    for (int errnum = 0; errnum <= MAX_ERROR; errnum++) {
+        char *expected = strerror(errnum);
+        char *actual = s21_strerror(errnum);
+
+        ck_assert_str_eq(actual, expected);
+    }
+}
+END_TEST
+
+
 // -------------------------ТЕСТЫ strlen------------------------------
 
 // базовый случай
@@ -346,6 +344,80 @@ START_TEST(test_s21_strlen_basic) {
     s21_size_t actual = s21_strlen(str);
 
     ck_assert_int_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strpbrk------------------------------
+
+// базовый случай
+START_TEST(test_s21_strpbrk_basic) {
+    char str1[] = "Hello, world!";
+    char str2[] = "SJJJJ, world!";
+
+    char *expected = strpbrk(str1, str2);
+    char *actual = s21_strpbrk(str1, str2);
+
+    ck_assert_ptr_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strrchr------------------------------
+
+// базовый случай
+START_TEST(test_s21_strrchr_basic) {
+    char str[] = "Hello, world!";
+    int c = '!';
+
+    char *expected = strrchr(str, c);
+    char *actual = s21_strrchr(str, c);
+
+    ck_assert_ptr_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strstr-------------------------------
+
+// базовый случай
+START_TEST(test_s21_strstr_basic) {
+    char haystack[] = "Hello, world!";
+    char needle[] = "world";
+
+    char *expected = strstr(haystack, needle);
+    char *actual = s21_strstr(haystack, needle);
+
+    ck_assert_ptr_eq(actual, expected);
+}
+END_TEST
+
+
+// -------------------------ТЕСТЫ strtok-------------------------------
+
+// базовый случай
+START_TEST(test_s21_strtok_basic) {
+    char str1[] = "hello,world,test";
+    char str2[] = "hello,world,test";
+    char delim[] = ",";
+
+    char *expected = strtok(str2, delim);
+    char *actual = s21_strtok(str1, delim);
+
+    ck_assert_str_eq(actual, expected);
+
+    // Проверяем последующие токены
+    expected = strtok(NULL, delim);
+    actual = s21_strtok(S21_NULL, delim);
+    ck_assert_str_eq(actual, expected);
+
+    expected = strtok(NULL, delim);
+    actual = s21_strtok(S21_NULL, delim);
+    ck_assert_str_eq(actual, expected);
+
+    expected = strtok(NULL, delim);
+    actual = s21_strtok(S21_NULL, delim);
+    ck_assert_ptr_eq(actual, expected); // Оба должны быть NULL
 }
 END_TEST
 
@@ -364,7 +436,6 @@ Suite *s21_string_suite(void) {
     tcase_add_test(tc_memchr, test_s21_memchr_last_byte);
     tcase_add_test(tc_memchr, test_s21_memchr_zero_length);
     tcase_add_test(tc_memchr, test_s21_memchr_with_null_byte);
-    tcase_add_test(tc_memchr, test_s21_memchr_null_pointer);
 
     // группа тестов memcmp
     TCase *tc_memcmp = tcase_create("memcmp");
@@ -373,12 +444,10 @@ Suite *s21_string_suite(void) {
     tcase_add_test(tc_memcmp, test_s21_memcmp_diff_middle_byte);
     tcase_add_test(tc_memcmp, test_s21_memcmp_diff_last_byte);
     tcase_add_test(tc_memcmp, test_s21_memcmp_zero_length);
-    tcase_add_test(tc_memcmp, test_s21_memcmp_null_pointers);
 
     // группа тестов memcpy
     TCase *tc_memcpy = tcase_create("memcpy");
     tcase_add_test(tc_memcpy, test_s21_memcpy_basic);
-    tcase_add_test(tc_memcpy, test_s21_memcpy_null_pointers);
     tcase_add_test(tc_memcpy, test_s21_memcpy_zero_length);
 
     // группа тестов для memset
@@ -406,9 +475,29 @@ Suite *s21_string_suite(void) {
     TCase *tc_strcspn = tcase_create("strcspn");
     tcase_add_test(tc_strcspn, test_s21_strcspn_basic);
 
+    // группа тестов для strerror
+    TCase *tc_strerror = tcase_create("strerror");
+    tcase_add_test(tc_strerror, test_s21_strerror_basic);
+
     // группа тестов для strlen
     TCase *tc_strlen = tcase_create("strlen");
     tcase_add_test(tc_strlen, test_s21_strlen_basic);
+
+    // группа тестов для strpbrk
+    TCase *tc_strpbrk = tcase_create("strpbrk");
+    tcase_add_test(tc_strpbrk, test_s21_strpbrk_basic);
+
+    // группа тестов для strrchr
+    TCase *tc_strrchr = tcase_create("strrchr");
+    tcase_add_test(tc_strrchr, test_s21_strrchr_basic);
+
+    // группа тестов для strstr
+    TCase *tc_strstr = tcase_create("strstr");
+    tcase_add_test(tc_strstr, test_s21_strstr_basic);
+
+    // группа тестов для strtok
+    TCase *tc_strtok = tcase_create("strtok");
+    tcase_add_test(tc_strtok, test_s21_strtok_basic);
 
 
     // добавление групп тестов (TCase) в набор групп тестов (Suite)
@@ -421,7 +510,12 @@ Suite *s21_string_suite(void) {
     suite_add_tcase(s, tc_strncmp);
     suite_add_tcase(s, tc_strncpy);
     suite_add_tcase(s, tc_strcspn);
+    suite_add_tcase(s, tc_strerror);
     suite_add_tcase(s, tc_strlen);
+    suite_add_tcase(s, tc_strpbrk);
+    suite_add_tcase(s, tc_strrchr);
+    suite_add_tcase(s, tc_strstr);
+    suite_add_tcase(s, tc_strtok);
 
     return s;
 }

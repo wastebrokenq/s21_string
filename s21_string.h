@@ -1,5 +1,5 @@
-#ifndef S21_STRING_H_
-#define S21_STRING_H_
+#ifndef S21_STRING_H
+#define S21_STRING_H
 
 // макрос для NULL-указателя
 #define S21_NULL ((void*)0)
@@ -17,7 +17,10 @@ char *s21_strchr(const char *str, int c);
 int s21_strncmp(const char *str1, const char *str2, s21_size_t n);
 char *s21_strncpy(char *dest, const char *src, s21_size_t n);
 s21_size_t s21_strcspn(const char *str, const char *reject);
-// char *s21_strerror(int errnum);
+char *s21_strerror(int errnum);
 s21_size_t s21_strlen(const char *str);
-
-#endif
+char *s21_strpbrk(const char *str1, const char *str2);
+char *s21_strrchr(const char *str, int c);
+char *s21_strstr(const char *haystack, const char *needle);
+char *s21_strtok(char *str, const char *delim);
+#endif // S21_STRING_H
