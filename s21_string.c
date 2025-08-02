@@ -364,7 +364,11 @@ char *s21_strerror(int errnum) {
         return (char *)s21_errors[errnum];
     }
     static char buffer[50];
-    snprintf(buffer, sizeof(buffer), "Unknown error %d", errnum);
+    #ifdef __APPLE__
+        snprintf(buffer, sizeof(buffer), "Unknown error: %d", errnum);
+    #else
+        snprintf(buffer, sizeof(buffer), "Unknown error %d", errnum);
+    #endif
     return buffer;
 }
 
