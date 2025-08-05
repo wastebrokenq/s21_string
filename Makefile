@@ -1,40 +1,58 @@
 CC = gcc
-CFLAGS_BEFORE = -Werror -Wextra -Wall -std=c11 -fprofile-arcs -ftest-coverage
-CFLAGS_AFTER = -lcheck -lpthread -lm
+CFLAGS = -Wall -Wextra -Werror -std=c11 -fprofile-arcs -ftest-coverage
+LDLIBS = -lcheck -lm -lpthread
 
 # Определяем систему
 UNAME_S := $(shell uname -s)
 
-# Добавляем -lsubunit только для Linux
+# Добавляем -lsubunit для Linux
 ifeq ($(UNAME_S),Linux)
-    CFLAGS_AFTER += -lsubunit
+    LDLIBS += -lsubunit
 endif
 
-FILENAME = s21_string.c tests/test_s21_string.c
+SOURCES = s21_string.c s21_sprintf.c
+OBJECTS = $(SOURCES:.c=.o)
+LIBRARY = s21_string.a
+TEST_DIR = tests
+TEST_SOURCES = $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJECTS = $(TEST_SOURCES:.c=.o)
+TEST_EXECUTABLES = $(patsubst %.c,%,$(TEST_SOURCES))
+ALL_SRC = $(wildcard *.c */*.c *.h */*.h)
 
-.PHONY: all test report full
+.PHONY: all test clean gcov_report clang control cppcheck
 
-all: test_s21_string
+all: $(LIBRARY)
 
-test_s21_string: $(FILENAME)
-	$(CC) $(CFLAGS_BEFORE) $(FILENAME) -o test_s21_string $(CFLAGS_AFTER)
+$(LIBRARY): $(OBJECTS)
+	ar rcs $@ $^
+	ranlib $@
 
-test: test_s21_string
-	./test_s21_string
+$(OBJECTS): %.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(TEST_EXECUTABLES): %: %.o $(LIBRARY)
+	$(CC) $(CFLAGS) $< $(LIBRARY) $(LDLIBS) -o $@
+
+test: $(LIBRARY) $(TEST_EXECUTABLES)
+	for test in $(TEST_EXECUTABLES); do ./$$test; done
 
 clean:
-	rm -rf test_s21_string *.gcno *.gcda *.info report/*
+	rm -rf $(LIBRARY) $(OBJECTS) $(TEST_OBJECTS) $(TEST_EXECUTABLES) *.gcno *.gcda *.gcov tests/*.gcda tests/*.gcov tests/*.gcno coverage.info report/ coverage_report/
 
-# Разделяем команды для разных ОС
+gcov_report: test
+	lcov -t "gcov_report" -o coverage.info -c -d .
+	genhtml coverage.info -o report/
 ifeq ($(UNAME_S),Darwin)
-report: test
-	lcov -t "gcov_report" -o coverage.info -c -d .
-	genhtml coverage.info -o report/
 	open report/index.html
-else
-report: test
-	lcov -t "gcov_report" -o coverage.info -c -d .
-	genhtml coverage.info -o report/
 endif
 
-full: report
+clang:
+	cp ../materials/linters/.clang-format ./
+	clang-format -i $(ALL_SRC)
+
+control: CFLAGS += -DVALGRIND
+control: clean $(LIBRARY) $(TEST_EXECUTABLES)
+	for test in $(TEST_EXECUTABLES); do CK_FORK=no valgrind --tool=memcheck --leak-check=yes ./$$test; done
+
+cppcheck:
+	cppcheck --enable=all --suppress=missingIncludeSystem $(ALL_SRC)
